@@ -520,6 +520,10 @@
           processed = _handleMatchSelection(key);
         }
 
+        if (!processed && ctrl.multiple && ctrl.limit !== undefined && ctrl.limit <= ctrl.selected.length) {
+          processed = true;
+        }
+
         if (!processed && ctrl.items.length > 0) {
           processed = _handleDropDownSelection(key);
         }
@@ -605,6 +609,7 @@
 
         $select.onSelectCallback = $parse(attrs.onSelect);
         $select.onRemoveCallback = $parse(attrs.onRemove);
+        $select.limit = (angular.isDefined(attrs.limit)) ? parseInt(attrs.limit, 10) : undefined;
 
         //From view --> model
         ngModel.$parsers.unshift(function (inputValue) {

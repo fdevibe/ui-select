@@ -107,11 +107,15 @@ describe('ui-select tests', function() {
     return el.scope().$select.open && el.hasClass('open');
   }
 
+  function createKeydownEvent(keyCode) {
+    var event = jQuery.Event("keydown");
+    event.which = keyCode;
+    event.keyCode = keyCode;
+    return event;
+  }
+
   function triggerKeydown(element, keyCode) {
-    var e = jQuery.Event("keydown");
-    e.which = keyCode;
-    e.keyCode = keyCode;
-    element.trigger(e);
+    element.trigger(createKeydownEvent(keyCode));
   }
 
   function setSearchText(el, text) {
@@ -1011,6 +1015,7 @@ describe('ui-select tests', function() {
             if (attrs.disabled !== undefined) { attrsHtml += ' ng-disabled="' + attrs.disabled + '"'; }
             if (attrs.required !== undefined) { attrsHtml += ' ng-required="' + attrs.required + '"'; }
             if (attrs.tabindex !== undefined) { attrsHtml += ' tabindex="' + attrs.tabindex + '"'; }
+            if (attrs.limit !== undefined) { attrsHtml += ' limit="' + attrs.limit + '"'; }
         }
 
         return compileTemplate(
@@ -1305,6 +1310,36 @@ describe('ui-select tests', function() {
         var el = createUiSelectMultiple();
         expect(el.scope().$select.selected.length).toBe(2);
         expect(el.find('.ui-select-match-item').length).toBe(2);
+    });
+
+    it('should allow more searches if limit is set but not reached', function () {
+      var el,
+          searchInput,
+          event = createKeydownEvent('a'),
+          preventDefaultCalled = false;
+      scope.selection.selectedMultiple = [scope.people[4], scope.people[5]];
+      el = createUiSelectMultiple({limit: 3});
+      searchInput = el.find('.ui-select-search');
+      event.preventDefault = function () {
+        preventDefaultCalled = true;
+      };
+      searchInput.trigger(event);
+      expect(preventDefaultCalled).toBe(false);
+    });
+
+    it('should not allow more searches if limit is set and reached', function () {
+      var el,
+          searchInput,
+          event = createKeydownEvent('a'),
+          preventDefaultCalled = false;
+      scope.selection.selectedMultiple = [scope.people[4], scope.people[5], scope.people[6]];
+      el = createUiSelectMultiple({limit: 3});
+      searchInput = el.find('.ui-select-search');
+      event.preventDefault = function () {
+        preventDefaultCalled = true;
+      };
+      searchInput.trigger(event);
+      expect(preventDefaultCalled).toBe(true);
     });
 
     it('should parse the items correctly using single property binding', function() {
